@@ -1,0 +1,9 @@
+.vscode/
+build/
+*.log
+*.aux
+*.fdb_latexmk
+*.fls
+*.gz
+*.out
+*.toc
