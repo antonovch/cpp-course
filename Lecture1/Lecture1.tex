@@ -1,17 +1,8 @@
 
 \documentclass[12pt]{article}
-\usepackage[utf8]{inputenc}
-\usepackage[T2A]{fontenc}
-\usepackage[english, ukrainian]{babel}
-\usepackage[a4paper, total={6in, 8in}]{geometry}
-\usepackage{amsmath}
-\usepackage{graphicx}
-\usepackage{hyperref}
-\usepackage[shortlabels]{enumitem}
+\usepackage{../common/cpp-lectures}
 
 \title{Лекція 1. Вступ.}
-\author{}
-\date{Версія \today}
 
 \begin{document}
     %\begin{titlepage}
@@ -56,8 +47,8 @@
 
 	IDE, саме, часто просто інтегрують out-of-the-box інтеграцію з загальнодоступними інструментами, такими як
 	\begin{itemize}
-		\item \texttt{clang\_format} для форматування вихідного коду
-		\item \texttt{cpplint}, \texttt{cppcheck}, \texttt{Clang-Tidy} і \href{https://en.wikipedia.org/wiki/List_of_tools_for_static_code_analysis#C,_C++}{багато інших} для аналізу коду до моменту компіляції.
+		\item \m{clang\_format} для форматування вихідного коду
+		\item \m{cpplint}, \m{cppcheck}, \m{Clang-Tidy} і \href{https://en.wikipedia.org/wiki/List_of_tools_for_static_code_analysis#C,_C++}{багато інших} для аналізу коду до моменту компіляції.
 	\end{itemize}
 
 	Також, зазначимо важливість вибору і дотримання стилю написання та оформлення коду. Це стосується відступів, назв, розміру функцій перед тим як їх варто розділити на під-функції, максимальна ширина строки, положення дужок, заборона на використання потенційно ``небезпечних'' можливостей, переваги при виборі типів і багато-багато іншого. Непоганою вихідною точною є \href{https://google.github.io/styleguide/cppguide.html}{Google Code Style Sheet}. Також корисним буде ознайомитись з \href{https://github.com/isocpp/CppCoreGuidelines}{C++ Core Guidelines}.
@@ -70,9 +61,7 @@
 		\item \href{https://www.youtube.com/watch?v=mV_8GbzwZMM}{YouTube відео}: комбінування команд в Bash.
 	\end{itemize}
 
-	\section*{Завдання}
-	\addcontentsline{toc}{section}{Завдання}
-	
+	\sec{Завдання}	
 	Налаштувати свій робочий комп'ютер під роботу з C++: встановити все необхідне програмне забезпечення, скомпілювати програму ``Hello world'' та інші доступні на своєму комп'ютері, переконатись в коректній роботі.
 
 \end{document}

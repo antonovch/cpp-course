@@ -1,0 +1,43 @@
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{../common/cpp-lectures}
+  [2023/02/25 v0.1 LaTeX package for lectures on C++]
+
+\RequirePackage[utf8]{inputenc}
+\RequirePackage[T2A]{fontenc}
+\RequirePackage[english, ukrainian]{babel}
+\RequirePackage[a4paper, total={6in, 8in}]{geometry}
+\RequirePackage{amsmath}
+\RequirePackage{graphicx}
+\RequirePackage{hyperref}
+\RequirePackage{listings}
+\RequirePackage{color}
+\RequirePackage[shortlabels]{enumitem}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\lstloadlanguages{c++, bash, make}
+
+\lstset{frame=tb,
+  language=c++,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\author{}
+\date{Версія \today}
+\newcommand{\m}{\texttt}
+\renewcommand{\sec}[1]{\section*{#1}\addcontentsline{toc}{section}{#1}}
+
+\endinput
