@@ -10,7 +10,7 @@
 
 Наприклад,
 
-\begin{lstlisting}
+\begin{lstlisting}[language=bash]
 > ./build/task1 myfile.txt mydoc.doc yourdoc.doc otherfile.txt
 You have provided 2 txt and 2 doc files.
 \end{lstlisting}
@@ -33,6 +33,7 @@ You have provided 2 txt and 2 doc files.
     \item Там же, викличте функцію-рахувальницю з різними варіантами списків файлів, перевірте коректність виводу.\footnote{Якщо ви не хочете прив'язуватись до конкретного тексту повідомлення, перевіряйте тільки те, що має значення на вашу думку. Наприклад, у виводі програми, що наведено вище, достатньо пересвідчитись, що повідомлення має наступні підрядки ``2 txt'' та ``2 doc''.}
     \item У main(), перед тим як перевіряти ввод користувача, викличте тести та виведіть одне з двох повідомлень: ``All tests passed!'', або ж  ``Some tests failed!''.
 \end{enumerate}
+  Подумайте які структури підійдуть для такої програми? Чи доречно продовжувати використовувати змінні типу \m{int} та \m{const char* []}? Подивіться в бік \m{std::vector} та \m{std::map} з стандартної бібліотеки STL.
 \end{itemize}
 
 \end{document}
