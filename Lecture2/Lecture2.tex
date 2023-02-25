@@ -1,0 +1,194 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[english, ukrainian]{babel}
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\lstloadlanguages{c++, bash, make}
+
+\lstset{frame=tb,
+  language=c++,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\title{Лекція 2. Знайомство з програмуванням на C++.}
+\author{}
+\date{Версія \today}
+
+\begin{document}
+    %\begin{titlepage}
+	\maketitle
+	%\end{titlepage}
+    \abstract{Ця лекція знайомить з процесом розробки та компіляції програм на мові C++, використанням (мета-)системи побудови програм CMake.}
+	
+	%\newpage
+	\tableofcontents
+	%\newpage
+	
+	\section{Як побудована найпростіша програма в C++?}
+	Кожен проект C++ має мати одну єдину функцію \texttt{main()}, що може приймати вихідні аргументи, або ні, яка буде викликана при запуску скомпільованого файлу. Вона має наступну форму:
+	\begin{lstlisting}[language=c++]
+		int main() {
+			/* your code here */
+			return 0; 
+		}
+	\end{lstlisting}
+
+	За конвенцією вона має повертати ціле число, де 0 означає успішне завершення програми, а будь-яке інше -- конкретну чи загальну помилку чи неочікувану поведінку при виконанні.
+
+	Будь-яка програма C++ використовує так звані \#include директиву пре-процесора. Вона дозволяє нам підключати додатковий функціонал у вигляди бібліотек, як стандартних, так і сторонніх, або написаних нами. Вони мають наступний формат:
+	\begin{itemize}
+		\item \texttt{\#include <file>} -- для системних файлів,
+		\item \texttt{\#include "file"} -- для локальних файлів.
+	\end{itemize}
+	Майте на увазі, що різниця в формату не строга, але її варто дотримуватись.
+
+	Додаються ці команди на початку вашого .h (.hpp), aбо .cpp (.cc) файлів, і, перед початком компіляції, препроцесор замість цих директив вставить повністю вміст відповідних файлів. Існують також і інші директиви, з повним списком можна ознайомитись \href{https://en.cppreference.com/w/cpp/preprocessor}{тут}, але їх (часте) використання не заохочується.\footnote{Ще одним винятком є використання \texttt{\#pragma once} для уникнення включення того самого header файлу кілька разів, або використання \texttt{\#ifndef} для досягнення тієї самої мети, що є старішим підходом.}
+
+	\section{Процес компіляції.}
+
+	C++ -- це \href{https://uk.wikipedia.org/wiki/%D0%9A%D0%BE%D0%BC%D0%BF%D1%96%D0%BB%D1%8C%D0%BE%D0%B2%D0%B0%D0%BD%D0%B0_%D0%BC%D0%BE%D0%B2%D0%B0_%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D1%83%D0%B2%D0%B0%D0%BD%D0%BD%D1%8F}{компільована мова програмування}, що означає, що спеціальна програма (компілятор) мусить спочатку перетворити її вихідний код у файл з машинним кодом, який користувач вже може запустити на своєму комп'ютері. 
+
+	Для того, щоб скомпілювати вашу першу програму, достатньо виконати наступну просту команду \footnote{В цьому курсі подібні приклади будуть даватись в вигляді команди терміналу з використанням компілятора Clang (визирається за допомогою \texttt{c++}, або \texttt{clang++}; для GCC --  \texttt{g++}, або \texttt{gcc}).}:
+	\begin{lstlisting}[language=bash]
+		> c++ oneFileProgram.cpp
+	\end{lstlisting}
+
+	Clang побудує виконуваний файл, який буде знаходитись в поточній теці, та буде називатись \texttt{a.out}. Передати свою назву модна за допомогою прапорця \texttt{-o}, разом з іншими налаштуваннями, наприклад, стандарт C++, який ми плануємо використовувати для нашого проекту:\footnote{Компілятори мають силу силенну подібних налаштувань та опцій, які дуже важливі для реальних проектів. Знайти їх можна в документації до вашого компілятора.}
+	\begin{lstlisting}[language=bash]
+		> c++ -std=c++17 -o my_program oneFileProgram.cpp
+		> ./my_program 10
+		Is 10 positive? Answer: yes.
+		> ./my_program -10
+		Is -10 positive? Answer: no.
+	\end{lstlisting}
+
+	Зауважте, програма \texttt{oneFileProgram.cpp} має приклади роботи з потоками \texttt{iostream}, а також \texttt{stringstream}. Важливо також знати файлові потоки \texttt{fstream}. Вони мають величезну важливість в роботі (а також і в завданнях). На щастя, вони мають спільний інтерфейс, тому робота з одним, дуже сильно нагадує роботу з іншими.
+
+	Чи завжди процес компіляції буде таким простим? Звичайно ні. Можна сказати, він ніколи в реальному житті такий простий. Уявімо, для зручності і розширюваності нашої програми з попереднього прикладу, ми розіб'ємо її на декілька файлів (див. \texttt{multiFileProgram.cpp}).
+	Якщо ми тепер виконаємо ту саму команду, отримаємо помилку
+	\begin{lstlisting}[language=bash]
+		> c++ -std=c++17 -o my_program multiFileProgram.cpp
+		Undefined symbols for architecture x86_64:
+			"isPositive(int)", referenced from:
+				_main in multiFileProgram-528f77.o
+		ld: symbol(s) not found for architecture x86_64
+		clang: error: linker command failed with exit code 1 (use -v to see invocation)
+	\end{lstlisting}
+
+	Звичайно, для такого простого випадку, є швидке вирішення -- просто додати всі файли, де знаходиться наш вихідний код до команди, щоб компілятор знав де шукати наш код:
+	\begin{lstlisting}[language=bash]
+		> c++ -std=c++17 -o my_program multiFileProgram.cpp funcs.cpp
+	\end{lstlisting}
+
+	Але, це не завжди є бажаним, якщо ми хочемо працювати з нашими \texttt{funcs} файлами, як з бібліотеками, або ж підключити реальні сторонні бібліотеки. Але спочатку, давайте зрозуміємо суть помилки, яку ми побачили.	
+	
+	Процес компіляції складається з чотирьох кроків:
+	\begin{enumerate}
+		\item пре-процес (попередня обробка),
+		\item компіляція (яка дає назву всьому процесу),
+		\item збірка,
+		\item лінковка (зв'язування).
+	\end{enumerate}
+	Розберемо трохи детальніше кожний з цих кроків:
+	\begin{enumerate}
+		\item \textbf{Пре-процес}. Викликається пре-процесор, який робить попередню обробку вихідного коду, згідно директив, що зазначив програміст: вставляє код з header файлів, видаляє та залишає окремі секції коду, видаляє коментарі. Щоб запустити цей процес окремо в Clang і подивитись на результат, треба виконати команду \texttt{clang++ -E main.cpp > main.i}.
+		\item \textbf{Компіляція}. Компілятор перетворює C++ код на команди асемблера. Цей крок запускається командою \texttt{clang++ -S main.i}, на виході отримуємо файл \texttt{main.s}.
+		\item \textbf{Збірка}. Код асемблера перетворюється на машинний двійковий код. Цей крок запускається командою \texttt{clang++ -c main.s}, на виході отримуємо файл \texttt{main.o}.
+		\item \textbf{Лінковка}. Весь машинний код з .o файлів збирається в виконуваний файл. Команда \texttt{clang++ main.o -o main}.
+	\end{enumerate}
+
+	Повертаючись до нашої помилки компіляції, бачимо, що вона завершилась на етапі лінкування, тому що лінкер не зміг знайти код функції \texttt{isPositive}, що логічно, тому що ми не додали файл з ним до проекту.
+	Подивимось як додати наш файл з допоміжною функцією як бібліотеку. Бібліотека -- це збірка пов'язаних сутностей. Вони бувають статичними, тобто такими, які є вбудованими в ваш кінцевий файл, та динамічними, які знаходяться в системі, на якій запускається програма. Наш файл ми будемо використовувати як статичну бібліотеку, у той час ви бачили, що такі бібліотеки як \texttt{iostream} в нашому прикладі були динамічними.
+	Щоб створити свю статично бібліотеку (у вигляді архіву), можна використати наступну команду
+	\begin{lstlisting}[language=bash]
+	> ar rcs libfuncs.a funcs.o
+	\end{lstlisting}
+
+	Зауважте, що файл \texttt{funcs.cpp} має бути вже скомпільований у \texttt{funcs.o}. Щоб Clang знайшов її, треба передати шлях до її розташування за допомогою \texttt{-L} а також її ім'я за допомогою \texttt{-l funcs}. Отже повний процес компіляції буде виглядати так:
+	\begin{lstlisting}[language=bash]
+	> c++ -std=c++17 -c funcs.cpp -o funcs.o
+	> ar rcs libfuncs.a funcs.o
+	> c++ -std=c++17 multiFileProgram.cpp -L . -l funcs -o my_program
+	\end{lstlisting}
+
+	\section{Системи побудови коду}
+	Як ви вже бачили, для більших програм, ніж ті, що складаються з однієї функції \texttt{main()}, процес компіляції коду (побудови програми) стає неінтуїтивним та важким для людини. На додачу, не просто може бути пояснити іншій людині як їй побудувати вашу програму в себе на комп'ютері. На порятунок приходять так звані системи побудови коду. Історично, вони існували як shell скріпти, що виконують прописані заздалегідь кроки. Ця практика пізніше переросла в системи побудови на кшталт Unix MakeFiles. Але все ще користуватись ними для великих проектів було важко, тому що треба було підтримувати багато супутніх make файлів. Щоб зарадити цьому, з'явилися мета-білд системи, з яких для C++ найбільш поширеною є CMake. 
+	
+	За допомогою CMake, наш процес компіляції можна задати наступним чином
+	\begin{lstlisting}[language=make]
+		# instead 'c++ -std=c++17 -c funcs.cpp -o funcs.o && ar rcs libfuncs.a funcs.o'
+		add_library(funcs funcs.cpp) 
+		# instead 'c++ multiFileProgram.cpp  -o my_program'
+		add_executable(my_program multiFileProgram.cpp) 
+		# instead '-L . -l funcs'
+		target_link_libraries(my_program funcs) 
+	\end{lstlisting}
+
+	Погодьтесь, цей скрипт є набагато зрозумілішим і легшим в редагуванні. Повний приклад можна подивитись в файлі \texttt{CMakeLists.txt}, що додається до цієї лекції. \texttt{CMakeLists.txt} -- це вимога CMake, назва за замовченням, щоб він знав, де ви зберігаєте його інструкції, що полегшує життя, дозволяючи не писати назву файлу при кожному виклику. Але ми ще не бачили, як саме робити цей виклик! Порядок роботи наступний:
+	\begin{enumerate}
+		\item Створити окрему директорію, де будуть зберігатись всі згенеровані, тимчасові та допоміжні файли, а також і сама вихідна програма (за замовченням, але її можна інсталювати будь де): \texttt{mkdir build}.
+		\item Перейти туди: \texttt{cd build}.
+		\item Запустити CMake, вказавши розташування корінного файлу \texttt{CMakeLists.txt}: \texttt{cmake ..}. За замовченням, на Unix-подібних платформах використовується стистема MakeFiles за замовченням. Вказати іншу можна за допомогою параметра \texttt{-G}. Повний список генераторів, доступних на окремо взятому комп'ютері, можна подивитись за допомогою \texttt{cmake -{}-help}.
+		\item Запустити саму систему побудови, для якої CMake згенерував все необхідне: \texttt{make}, або більш універсально: \texttt{cmake -{}-build .}, щоб дати CMake самому викликати потрібний інструмент.
+	\end{enumerate}
+
+	В кінці, ви побачити вашу програму в \texttt{./build/my\_program}. Всі згенеровані файлі зберігаються в цій теці, яку можна завжди безболісно видалити, якщо щось пішло не так, і створити заново.
+
+	Деякі основні корисні команди CMake:
+	\begin{itemize}
+		\item \texttt{cmake\_minimum\_required} -- задає мінімальну версію CMake, що працює з цим проектом. Мусить бути першою командою будь-якого \texttt{CMakeLists.txt}.
+		\item \texttt{project} -- назва вашого проекту.
+		\item \texttt{set} -- дозволяє задавати та створювати змінні.
+		\item \texttt{find\_library} -- знаходить скомпільовану бібліотеку, наприклад
+		\begin{lstlisting}[language=make]
+		find_library(TOOLS
+					NAMES tools
+					PATHS ${LIBRARY_OUTPUT_PATH}) 
+		# Library info is in TOOLS variable
+		target_link_libraries(<some_binary> ${TOOLS})
+		\end{lstlisting}
+		\item \texttt{find\_path} -- додає шлях з header файлами до проекту, наприклад
+		\begin{lstlisting}[language=make]
+		find_path(SOME_PKG_INCLUDE_DIR include/some_file.hpp <path1 > <path2 > ...)
+		include_directories(${SOME_PKG_INCLUDE_DIR})
+		\end{lstlisting}
+		\item \texttt{find\_package} -- автоматизує ці кроки, працює одразу з популярними бібліотеками, такими як OpenCV.
+	\end{itemize}
+	
+
+	\section*{Завдання}
+	\addcontentsline{toc}{section}{Завдання}
+	Знайдіть якийсь простий проект (ваш або чужий), або напишіть свій, як в прикладах цієї лекції і додайте до неї робочий \texttt{CMakeLists.txt} файл. Подивиться в документації який додатковий функціонал CMake може стати вам в нагоді. Приклади програм можна подивиться в \href{https://github.com/profjpbaugh/complete-cpp-developer-course}{GitHub репозиторії} онлайн курсу The Complete C++ Developer Course.
+	
+	\section*{Корисні посилання}
+	\addcontentsline{toc}{section}{Корисні посилання}
+	
+	\begin{itemize}
+		\item Stroustrup, Bjarne. The C++ programming language. Pearson Education, 2013.
+		\item Lippman, S., Lajoie, J., \& Moo, B. (2012). C++ Primer, 5th Edition. Addison-Wesley Professional.
+		\item \href{https://en.cppreference.com/w/cpp}{C++ Reference}
+		\item \href{http://www.cplusplus.com/doc/tutorial/}{C++ Tutorial}
+	\end{itemize}
+	
+	\end{document}
