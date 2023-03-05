@@ -1,0 +1,8 @@
+data:
+  key_to_map:
+    key1: value1
+    key2: value2
+  key_to_vector:
+    - string from vector 1
+    - string from vector 2
+  key_to_string: this is a string
