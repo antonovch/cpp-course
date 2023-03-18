@@ -1,0 +1,123 @@
+\documentclass[12pt]{article}
+\usepackage{../common/cpp-lectures}
+
+\title{Лекція 5. STL та контейнери}
+
+\begin{document}
+    %\begin{titlepage}
+	\maketitle
+	%\end{titlepage}
+    \abstract{Жодна справжня програма не може обійтись без якогось рішення для зберігання інформації. Об'єкти що використовуються для цього часто звуться контейнерами. Контейнери різняться за способом зберігання та звертання до данних, але не повинні залежити від конктерного типу цих данних, максимум, накладати певні обмеження. В C++ базові контейнери входять в склад Стандартної Бібліотеки Шаблонів (Standard Teamplate Library, STL). Це лекція знайомить читача з ними.}
+
+	%\newpage
+	\tableofcontents
+	%\newpage
+	
+	\section{\m{std::array}}
+	Найпримітивнішим контейнером в STL є \href{https://en.cppreference.com/w/cpp/container/array}{\m{std::array}}. Він дозволяє зберігати набір об'єктів одного типу. Його розмір зазначається при створюванні і не змінюється протягом життя. Приклад використання:
+	\begin{lstlisting}[language=c++]
+		#include <array>
+		#include <string>
+		#include <iostream>
+
+		int main() {
+			std::array<float, 3> floats = {1.0f, 2.0f, 3.0f};
+			std::array<std::string, 3> strings = {"one", "two", "three"};
+			
+			std::cout << "The first number is " << floats[0] << std::endl;
+			std::cout << "The last number is " << floats[floats.size()-1] << std::endl;
+
+			// better way
+			std::cout << "The first string is " << strings.front() << std::endl;
+			std::cout << "The last string is " << strings.back() << std::endl;
+
+			return 0; 
+		}
+	\end{lstlisting}
+	На практиці, \m{std::array} використовується рідко -- найбільше для зберігання невеличкої групки параметрів, яка задається один раз при створенні і не змінює розмір.
+	Гнучкість, якої не вистачає \m{std::array} для більш широкого використання додає \m{std::vector}.
+
+	\section{\m{std::vector}}
+	Найбільш вживаним контейнером STL є беззаперечно \href{https://en.cppreference.com/w/cpp/container/vector}{\m{std::vector}}. Якщо просто, то це \m{std::array}, який може змінювати свій розмір. В деякому сенсі, \m{std::vector} -- це обгортка над \m{std::array} -- він зберігає данні\footnote{Які доречі зберігаються послідовно в пам'яті комп'ютера.} в чомусь подібному на \m{std::array}\footnote{Який можна отримати за допомогою методу \m{data()}.}, але автоматично ``змінює'' його розмір за нас, тобто створює більший або менший масив і копіює елементи туди. Для оптимізації цього процесу введено поняття ємності (capacity), тобто кількості виділеної пам'яті, яку можна займати перед тим, як треба звертатися за новою пам'яттю. Можна вважати це як розмір того \m{std::array}, в який ми записуємо. У той самий час, зберігається термін розміру та метод \m{size()} який повертає кількість елементів в векторі. На практиці, нам часто не потрібно напряму працювати з ємністю вектора, тільки якщо ми заздалегідь маємо уявлення про те, скільки елементів нам буде потрібно зберігати. В такому випадку, ми можемо за один раз виділити необхідну кількість за допомогою методу \href{https://en.cppreference.com/w/cpp/container/vector/reserve}{reserve}. На практиці це може мати суттєвий вплив на час виконання програми.
+
+	Рекомендуємо ознайомитись з документацією, де ви знайдете повний список методів, доступних для роботи з \m{std::vector}. Зазначимо тут тільки основне, а саме
+	\begin{itemize}
+		\item звертання до елементів відбувається так само, як і для \m{std::array}\footnote{Зверніть увагу на метод \m{at()}, який, на відміну від оператора прямокутних дужок, перевіряє чи індекс не більший за розмір вектора.},
+		\item видалити всі елементи можна за допомогою метода \m{clear()},
+		\item нові елементи зручно додавати за допомогою \href{https://en.cppreference.com/w/cpp/container/vector/push_back}{\m{push\_back()}}, або \\ \href{https://en.cppreference.com/w/cpp/container/vector/emplace_back}{\m{emplace\_back()}}. Останній -- це рекомендований підхід, оскільки дозволяє створити об'єкт в середині вектора, уникаючи зайві копії.\footnote{Насправді, різниця може бути більш тонкою, ніж може здатись з цього твердження. Зверніться до літератури та посилань за повнішою картиною.} Ці методи додають елементи в кінець списку, що є найбільш ефективним, якщо нам не важливий їх порядок. Якщо ж треба поставити елемент на конкретну позицію, дивіться в бік \href{https://en.cppreference.com/w/cpp/container/vector/insert}{\m{insert()}},
+		\item для перевірки пустоти контейнера існує метод \m{empty()}\footnote{Він є універсальним для всіх контейнерів та рядків.}.
+	\end{itemize}
+
+	\section{\m{std::map}}
+	\href{https://en.cppreference.com/w/cpp/container/map}{\m{std::map}} -- це відсортований асоціативний контейнер.\footnote{Це аналог \m{dict} (словника) в мові Python, або \m{struct} в MatLab.}
+	Він містить в собі пари ключ-значення. \footnote{В деякому сенсі буквально -- якщо ітерувати по \m{std::map} за допомогою range for-loop, то елементом буде об'єкт типу \m{std::pair<key\_type, mapped\_type>}, що за сумісництвом э його \m{value\_type}.}
+	Його ключі мають бути унікальними. \footnote{Інша різновидність асоціативного контейнера в STL -- \href{https://en.cppreference.com/w/cpp/container/multimap}{\m{std::multimap}} дозволяє мати однакові ключі.}
+	Оскільки, як вже було зазначено, \m{std::map} -- це відсортований контейнер, є вимога до типу його ключів, а саме, для них повинно бути задано \m{operator<}. При дотримання цієї умови, ви легко можете використовувати власні об'єкти, як \m{key\_type} для \m{std::map}. 
+	
+	Сортування пар, це додаткова операція, яку \m{std::map} робить автоматично. Завдяки цьому досягається логарифмічна складність операцій вставки, пошуку, та видалення. Існує ще одна різновидність контейнерів, котра має той самий інтерфейс взаємодії, але зберігає дані інакше, а саме, в вигляді хеш таблиці. Мова йде про \href{https://en.cppreference.com/w/cpp/container/unordered_map}{\m{std::unordered\_map}}. У цьому випадку, контейнер повинен мати змогу отримати хеш \m{key\_type}'у. Вона має в середньому константну складність згаданих операцій, але в гіршому випадку -- лінійну. Тому, в залежності від способу взаємодії з даними та їх кількості, швидшим може виявитись або один, або інший тип.
+
+	Рекомендуємо ознайомитись з документацією, де ви знайдете повний список методів, доступних для роботи з \m{std::map}. Зазначимо тут тільки основне, а саме
+	\begin{itemize}
+		\item як і для інших контейнерів, є імплементованими методи \m{empty()} та \m{size()},
+		\item звертання до елементів відбувається трьома основними способами, які відрізняються поведінкою у випадку відсутності пари з заданим ключем:
+		\begin{itemize}
+			\item \href{https://en.cppreference.com/w/cpp/container/map/operator_at}{\m{operator[]}}, який повертає створений за замовченням (пустий) елемент типу \m{mapped\_type},
+			\item \href{https://en.cppreference.com/w/cpp/container/map/at}{\m{at()}}, який кидає виняток типу \m{std::out\_of\_range},
+			\item \href{https://en.cppreference.com/w/cpp/container/map/find}{\m{find()}}, який повертає ітератор, що дорівнює \m{end()}.
+		\end{itemize}
+		\item видалити всі елементи можна за допомогою метода \m{clear()},
+		\item є так само декілька методів для додавання елементів, рекомендуємо почати з \href{https://en.cppreference.com/w/cpp/container/map/emplace}{\m{emplace()}}, або \href{https://en.cppreference.com/w/cpp/container/map/try_emplace}{\m{try\_emplace()}}, якщо не бажано заміняти існуюче значення. Альтернативою є \href{https://en.cppreference.com/w/cpp/container/map/operator_at}{\m{operator[]}} та \href{https://en.cppreference.com/w/cpp/container/map/insert}{\m{insert()}} та інші,
+		\item перевірити наявність ключа можна за допомогою метода \href{https://en.cppreference.com/w/cpp/container/map/count}{\m{count()}}: \m{m.count(key) > 0}, або \m{m.contains(key)} починаючи з C++20,
+		\item для ітерації по елементах, використовуйте range for-loop (починаючи з C++17):
+		\begin{lstlisting}[language=c++]
+			std::map<char, int> my_dict{{'a', 27}, {'b', 3}}; 
+			for (const auto& [key, value] : my_dict)
+				std::cout << key << " has value " << value << std::endl;
+		\end{lstlisting}
+	\end{itemize}
+	
+	\section{Ітератори}
+	Якщо узагальнити, то ітератори -- це уніфікований інтерфейс роботи з елементами контейнерів в C++. Алгоритми та функції стандартної бібліотеки C++ працюють саме з ітераторами, а не з об'єктами конкретного типу, що дозволяє їм бути універсальними. Також, якщо ви пишете свій контейнер, або обгортку, то правильно задані ітератори автоматично дозволить вам використовувати ваші структури з функціями в \m{std}.
+
+	Ітератори поведінкою і механізмом взаємодії схожі з вказівниками, конкретніше
+	\begin{itemize}
+		\item щоб отримати елемент, на який посилаються, використовується оператор \m{*}: \m{*iter},
+		\item методи та атрибути доступні через оператор стрілки \m{->},
+		\item щоб перейти на наступний елемент, зручно використовувати оператор \m{++}: \m{iter++},
+		\item а взагалі, для навігації по масиву можна використовувати оператор \m{+}, або \m{-} та ціле число, наприклад, просунутись на два елементи вперед можна за допомогою \m{iter = iter + 2}\footnote{iter += 2}, на три назад -- \m{iter = iter - 3}\footnote{iter -= 3},
+		\item працює з range for-loops,
+		\item задані оператори порівняння, \m{==}, \m{!=}, \m{<}.
+	\end{itemize}
+
+	Для початку роботи, найчастіше, нам необхідно отримати ітератор початку, або кінця. Зробити це можна за допомогою методів \m{begin()} та \m{end()}, відповідно. Однак, якщо це можливо, краще використовувати варіацію цих методів, що повертає їх константну версію, яка не дозволяє змінювати елемент, на який пони посилаються, а саме \m{cbegin()} та \m{cend()}. За аналогією, існують методи, що повертають зворотні ітератори для проходу по контейнеру в зворотньому напрямку: \m{rbegin()/crbegin()} та \m{rend()/crend()}.
+
+	Типовими алгоритми, що часто використовуються, які задані в файлі заголовку \m{algorithm}, та які можуть дати уяву про роботу з ітераторами є:
+	\begin{itemize}
+		\item \href{https://en.cppreference.com/w/cpp/algorithm/sort}{std::sort}
+		\item \href{https://en.cppreference.com/w/cpp/algorithm/find}{std::find}
+		\item \href{https://en.cppreference.com/w/cpp/algorithm/fill}{std::fill}
+		\item \href{https://en.cppreference.com/w/cpp/algorithm/count}{std::count}
+		\item \href{https://en.cppreference.com/w/cpp/algorithm/count_if}{std::count\_if}
+		\item \href{https://en.cppreference.com/w/cpp/algorithm/for_each}{std::for\_each}
+		\item \href{https://en.cppreference.com/w/cpp/algorithm/all_of}{std::all\_of}
+		\item \href{https://en.cppreference.com/w/cpp/algorithm/transform}{std::transform}
+		\item \href{https://en.cppreference.com/w/cpp/algorithm/accumulate}{std::accumulate}
+		\item \href{https://en.cppreference.com/w/cpp/algorithm/max}{std::max}
+		\item \href{https://en.cppreference.com/w/cpp/algorithm/min_element}{std::min\_element}
+		\item \href{https://en.cppreference.com/w/cpp/algorithm/minmax_element}{std::minmax\_element}
+		\item \href{https://en.cppreference.com/w/cpp/algorithm/clamp}{std::clamp}
+	\end{itemize}
+
+	\sec{Завдання}
+	Переконайтесь, що ви маєте впевненість при використанні об'єктів з STL.
+
+	\sec{Література}
+	
+	\begin{itemize}
+		\item Stroustrup, Bjarne. The C++ programming language. Pearson Education, 2013 (Глави 30-33).
+		\item \href{https://en.cppreference.com/w/cpp/container}{CPPReference, Containers}.
+		\item \href{https://en.cppreference.com/w/cpp/iterators}{CPPReference, Iterators}.
+		\item \href{https://en.cppreference.com/w/cpp/algorithm}{CPPReference, Algorithms}.
+	\end{itemize}
+
+\end{document}
