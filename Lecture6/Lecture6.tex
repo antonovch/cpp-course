@@ -1,0 +1,192 @@
+\documentclass[12pt]{article}
+\usepackage{../common/cpp-lectures}
+
+\title{Лекція 6. Класи в C++.}
+
+\begin{document}
+    %\begin{titlepage}
+	\maketitle
+	%\end{titlepage}
+    \abstract{Ця лекція знайомить з одною з найважливіших концепцій мови C++, а саме, абстрагування об'єктів та процедур в логічні блоки за допомогою класів.}
+
+	%\newpage
+	\tableofcontents
+	%\newpage
+	
+	\section{Власні типи}
+	При розробці програм, таких, що є зрозумілими для читача, а також таких, що зменшують вірогідність неприємностей завдяки правильному дизайну, особливо якщо використовується строго типізована мова, дуже важливо грамотно працювати з типами даних. Це означає, (і) використання тих типів, які найкраще підходять під задачу, (іі) уникнення надмірного перевикористання загальних типів (таких як \m{std::string}, \m{int}), які не говорять користувачу нічого про суть переданого значення, і які можуть дати помилку, коли ці дані переплутаються,\footnote{Навіть гірше -- коли ніякої помилки немає, натомість ми маємо нестандартну поведінку, яку дуже важко пояснити.} і навпаки (ііі) використання `доречних' типів, а саме таких, що дають уявлення про природу даних, відокремлюють їх від інших, та не несуть з собою більше інформації, ніж потрібно.
+
+	Наприклад, бібліотека \m{std::chrono} задає \href{https://en.cppreference.com/w/cpp/chrono/duration}{велику кількість типів} для запису різної протяжності часу. Таким чином, сігнатура функції, яка приймає проміжок часу, одразу скаже нам в яких одиницях він вимірюється, а також не дозволить передати значення в інших одиницях.\footnote{Або ж автоматично трансформує значення, якщо така операція задана.}
+
+	\begin{lstlisting}[language=c++]
+		void waitFor(std::chrono::seconds timeToWait) {
+			// implement waiting mechanism
+		}
+	\end{lstlisting}
+
+	Звичайно, можна було б для ціх цілей використовувати звичайний \m{int}, але не будемо повторювати недоліки цього підходу.
+
+	Є три основних підходи для створення своїх власних типів в C++:
+	\begin{enumerate}
+		\item псевдоніми для існуючих типів,
+		\item \m{enum} для набору кінцевої кількості цілих значень,
+		\item класи (структури) для повного управління всіма властивостями об'єктів.
+	\end{enumerate}
+
+	\subsection{Псевдоніми}
+	В C++ існує ключове слово \href{https://en.cppreference.com/w/cpp/language/typedef}{\m{typedef}}, а також, починаючи з C++11, \href{https://en.cppreference.com/w/cpp/language/type_alias}{using}, що дозволяє задати свою назву для існуючого типу. Це може бути корисно з трьох причин:
+	\begin{enumerate}
+		\item Нова назва часто банально більш коротка, її легше запам'ятати та писати,
+		\item Вона краще описує роль та суть інформації, що зберігається всередині,
+		\item Якщо базовий тип змінюється, то його достатньо змінити в одному місці -- в дефініції псевдо.
+	\end{enumerate}
+
+	Наприклад, ви зберігаєте профілі користувачів в структурі \m{std::map}, де ключ -- це їх ім'я, а значення -- ще одна \m{std::map}, що тримає інформацію по конкретній людині. Параметр профілю задається рядком, а значення допускається в форматі \m{std::string}, або числовому \m{int}. В такому випадку, одна з двох наступних декларації значно покращить якість вашого коду:
+	\begin{lstlisting}[language=c++]
+		typedef std::map<std::string, std::map<std::string, std::variant<std::string, int>>> UsersTable;
+		using UsersTable = std::map<std::string, std::map<std::string, std::variant<std::string, int>>>;
+	\end{lstlisting}
+
+	\subsection{enum}
+	\href{https://en.cppreference.com/w/cpp/language/enum}{Перечислювачі (enumerators/enumerations)} також призвані полегшити там життя та зробити нашу програму більш зрозумілішою для людини. Вони задають свій тип, але такий, що може приймати тільки одне з дозволенних значень. Вони задаються рядком, як назви замінної, але мають під собою ціле значення -- за замовченням \m{int}, або \m{unsigned int}, або таке, що в них конвертується\footnote{Відлік починається з нуля.}. Наприклад, подивимося на функцію
+	\begin{lstlisting}[language=c++]
+		void DescribeColor(int code) {
+			std::cout << "This color is: ";
+			switch(code) {
+				case 0:
+					std::cout << "red.\n";
+					break;
+				case 1:
+					std::cout << "green.\n";
+					break;
+				case 2:
+					std::cout << "blue.\n";
+					break;
+			}
+		}
+	\end{lstlisting}
+
+	Ніщо не заважає нам передати до функції \m{DescribeColor} число 100, або -1, в такому випадку вона наче коректно відпрацює, але на екрані буде неповне повідомлення. Простим запобіжником було б додати випадок \m{defult}, який би повернув помилку, що говорить про те, що отриманий код не відповідає кольору, але тільки після того, як частина повідомлення була виведена на екран. Набагато зрозуміліше та безпечніше використовувати для цього \m{enum}:
+	\begin{lstlisting}[language=c++]
+		enum RGB {
+			RED,
+			GREEN,
+			BLUE
+		}
+		void DescribeColor(RGB color) {
+			std::cout << "This color is: ";
+			switch(color) {
+				case REF:
+					std::cout << "red.\n";
+					break;
+				case GREEN:
+					std::cout << "green.\n";
+					break;
+				case BLUE:
+					std::cout << "blue.\n";
+					break;
+			}
+		}
+	\end{lstlisting}
+	Тепер з сігнатури функції там зрозуміло, що треба передати не будь-яке число, а об'єкт типу \m{RGB}, або таке число, що може бути перетворене на \m{RGB}. У такому разі, ми ще не заходячи в функцію автоматично отримаємо помилку, про то, що передане значення не відповідає жодному зі значень \m{enum}.
+	Наостанок зазначимо, що є гарною практикою використовувати \m{enum class}, або ж \m{enum struct}, щоб назва такого перерахування створювала свій простір імен. Таким чином, якщо змінити наш попередній приклад і написати
+	\begin{lstlisting}[language=c++]
+		enum class RGB { RED, GREEN, BLUE }
+	\end{lstlisting}
+	то звертатися до значень необхідно за допомогою оператора \m{::}, а саме
+	\begin{lstlisting}[language=c++]
+		RGB redColor = RGB::RED;
+		auto blueColor = RGB::BLUE;
+	\end{lstlisting}
+
+	\subsection{Класи}
+	Класи (\m{class}), або ж структури (\m{struct}), дозволяють нам створювати свої власні об'єкти, зі своїми структурами даних\footnote{Що звісно складаються з базових типів, структур і контейнерів стандартної бібліотеки, або інших користувацьких типів.}, та методами, що задани для них. Детальніше ми поговоримо про них далі.
+
+	\section{Синтаксис класів в C++}
+	Цитуючи, перекладаючи, з Stroustrup 2013, класи в C++ є інструментом для створення нових типів, які можна використовувати з такою самою зручністю, що і вбудовані типи. Крім того, похідні класи та шаблони дозволяють програмісту виражати взаємозв'язки між класами та використовувати переваги таких взаємозв'язків.\footnote{Похідні класи описуються далі, шаблони -- в наступних лекціях.} Тип -- це конкретне представлення концепції (ідеї, поняття тощо). Програма, яка задає та використовує типи, що тісно пов'язані з концепціями реалізації, як правило, легша для розуміння, міркувань і модифікації, ніж така, яка цього не робить.
+
+	Дефініція, або ж декларація, класу починається к ключового слова \m{class}, або \m{struct}. Результат вони мають однаковий, а відрізняються лише режимом доступу до атрибутів за замовченням -- \m{private} для \m{class}, та \m{public} для \m{struct}:
+	\begin{lstlisting}[language=c++]
+	class MyClass {
+		void DoAction();
+		int state;
+	}
+
+	void clientFunction(MyClass arg) {
+		arg.DoAction(); // error, not part of public interface
+		std::cout << "Current state: " << arg.state; // same error
+	}
+	\end{lstlisting}
+	у той час, як ці операції були б доступні, якщо б ми задекларували \m{MyClass} як \m{struct}. Звичайно, клас, який не має публічних атрибутів (полів) чи функцій (методів) не дуже корисний на практиці, тому тіло найчастіше поділяється на блоки \m{private} та \m{public}. За такої умови, якщо не покладатися на поведінку за замовченням, то взагалі немає різниці між ключовими словами \m{class} та \m{struct}. На практиці, зазвичай, дотримується наступна конвенція: \m{struct} використовується для (зазвичай невеликих) простих типів, які зберігають набір даних з відкритим доступом, і не мають якоїсь специфічної логіки. Наприклад,
+	\begin{lstlisting}[language=c++]
+		struct Student {
+			std::string name;
+			std::string group;
+			int graduationYear;
+			std::map<std::string, double> marks;
+		}
+
+		void printStudentInfo(Student student) {
+			std::cout << "Student " << student.name
+					  << " (grad. " << student.graduationYear << "), "
+					  << "Group " << student.group <<
+					  << ", has the following marks:\n";
+			
+			for (const auto& [course, mark] : student.marks) {
+				std::cout << course << ": " << mark << std::endl;
+			}
+		}
+	\end{lstlisting}
+	
+	Як вже було зазначено, за допомогою \m{private} та \m{public} можна відділяти приватний (що є частиною внутрішньої імплементації) інтерфейс від публічного (як нашим класом можна користуватись ззовні). Наприклад, наступний клас задає прототип інтерфейсу\footnote{Для його позначення часто використовується абревіатура API (Application Programming Interface, промовляється Ей-Пі-Ай)} (без конкретної імплементації) для класу, що зчитує якісь дані з диску при створенні об'єкту, але замість того, щоб видати користувачу їх у вигляді, наприклад, контейнера, він зберігає їх всередині, даючи можливість отримати доступ до них по одному через публічні методи:
+	\begin{lstlisting}[language=c++,label=readerh,caption="Reader.h"]
+		class Reader {
+		public:
+			Reader(const std::string& filename); // creates object and loads data
+			std::string getNextLine();
+			std::string getPrevLine();
+
+		private:
+			std::vector<std::string> data_;
+			std::vector<std::string>::const_iterator currLine_;
+		}
+	\end{lstlisting}
+
+	Зауважте, часто, для імен приватних атрибутів використовується окремий формат -- наприклад, ніжне підкреслення в кінці імені, або приставка \m{m\_}.
+
+	Код з лістінгу \ref{readerh} мусить знаходитись в файлі заголовку \m{Reader.h}, у той час, як його імплементація -- у \m{Reader.cpp}, в якому, по перше, треба зробити \m{\#include} відповідного заголовку, а по-друге, доступ до методів здійснюється через оператор \m{::} оскільки класи створюють свій простір імен:
+	\begin{lstlisting}[language=c++,label=readercpp,caption="Reader.cpp"]
+		#include "Reader.h"
+
+		Reader::Reader(const std::string& filename) {
+			data_ = LoadData(filename); // LoadData to be defined by author
+			currLine_ = data_.cbegin();
+		}
+
+		std::string Reader::getNextLine() {
+			if (currLine_ == data_.cend())
+				return {};
+
+			return *currLine_++;
+		}
+
+		std::string Reader::getPrevLine() {
+			if (currLine_ == data_.cbegin())
+				return {};
+
+			return *currLine_--;
+		}
+
+	\end{lstlisting}
+
+	На кінець цієї секції, варто зазначити, (і) що методи, які не змінюють дані в полях класу варто позначати як \m{const} (див. \href{https://en.cppreference.com/w/cpp/language/member_functions#const-_and_volatile-qualified_member_functions}{тут}),\footnote{В класі \m{Reader} з лістингу \ref{readerh} та \ref{readercpp} методи \m{getNextLine} та \m{getPrevLine} не можуть бути \m{const}, оскільки змінюють ітератор поточного рядка.} а також, (іі) що конструктори часто пишуться з використанням \href{https://en.cppreference.com/w/cpp/language/constructor}{member initializer lists}, що запобігає створенню тимчасових об'єктів.
+
+
+	\sec{Література}
+	
+	\begin{itemize}
+		\item Stroustrup, Bjarne. The C++ programming language. Pearson Education, 2013 (Глава 16).
+		\item \href{https://en.cppreference.com/w/cpp/language/classes}{CPPReference, Classes}.
+	\end{itemize}
+
+\end{document}
