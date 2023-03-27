@@ -8,3 +8,4 @@ build/
 *.out
 *.toc
 .DS_Store
+.cache/
