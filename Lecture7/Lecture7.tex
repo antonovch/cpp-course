@@ -1,0 +1,91 @@
+\documentclass[12pt]{article}
+\usepackage{../common/cpp-lectures}
+
+\title{Лекція 7. Робота з файлами. Потоки}
+
+\begin{document}
+    %\begin{titlepage}
+	\maketitle
+	%\end{titlepage}
+    \abstract{Ця лекція знайомить з форматом роботи з файлами та потоками в більш широкому розумінні в C++.}
+
+	%\newpage
+	\tableofcontents
+	%\newpage
+	
+	\section{Текстові потоки}
+    Для роботи з файлами в сучасному C++ прийнято використовувати так звані файлові потоки. Серед переваг є уніфікований і простий для всіх потоків інтерфейс та вбудована підтримка RAII, що проявляється в тому, що користувачу не обов'язково самостійно закривати файл методом \m{close()} -- він закривається автоматично деструктором потоку.
+
+    Але що ж саме таке ці потоки? Якщо простими словами, уявіть сутність, що тримає в собі буфер, який може безперешкодно розширюватись та звужуватись, та дозволяє послідовно зчитувати та записувати дані відповідного типу. Найчастіше ми маємо справу з текстовими потоками. Додатковою зручністю використання потоків STL є автоматичне конвертування типів, за можливістю, при запису в змінну іншого типу.
+
+    Файлові потоки задаються в заголовку \m{fstream}. Наприклад, конструктор \href{https://en.cppreference.com/w/cpp/io/basic_ifstream/basic_ifstream}{std::ifstream}, що є простим псевдонімом \m{std::basic\_ifstream<char>}, тобто поток елементів \m{char}, іншими словами, звичайний UTF-8 текст, приймає назву файла, та режим, як його відкривати, що за замовченням є для зчитування.\footnote{Більше про доступні режими можна подивитись \href{https://en.cppreference.com/w/cpp/io/ios_base/openmode}{тут}.}
+    \begin{lstlisting}[language=c++]
+        #include <fstream>
+        std::ifstream f_in("my_file.txt");
+    \end{lstlisting}
+
+    Аналогічно для потоків \href{https://en.cppreference.com/w/cpp/io/basic_ofstream}{запису} та \href{https://en.cppreference.com/w/cpp/io/basic_fstream}{двусторонніх} потоків.
+
+    При роботі з \m{std::ifsteam} найголовнішим є оператор зчитування $>>$, так само як для \m{std::ifsteam} є ключовим оператор $<<$ для запису. Вони записують або зчитують текст до наступного роздільника слова і видають наступне при повторному виклику. Існують також методи для більш складного маніпулювання буфером про які ви можете дізнатися з довідки.
+
+    Ви могли помітити, що робота з файловими потоками повністю аналогічна роботі з використанням звичних для вас \m{std::cout} та \m{std::cin}. Це в тему переваг використання зручних і зрозумілих інтерфейсів, бо \m{std::cout} та \m{std::cin} це ніщо інше як глобальні екземпляри класів \m{std::ostream} та \m{std::istream}, відповідно.
+
+    \section{Двійкові файли}
+    Звісно, все на комп'ютері є набором бітів, одиниць та нулів. Але тим не менш, є відомі формати, для праці з якими існують бібліотеки, як от текстові файли. Проте ніщо не завадить нам записати вміст пам'яті програми напряму в файл. Це має зрозумілу перевагу в швидкості читання та запису, а також займає мінімальне місце на диску.\footnote{Мова не йде про стиснення та архівація файлів, звісно.} Те, що цей файл неможливо прочитати як текст, може бути як перевагою (приватність), так і недоліком (важко працювати, складно переглянути). Також, програма, яка буде зчитувати цей файл, має точно знати що і в якому порядку там записано, щоб правильно інтерпретувати байти. Для трансформації об'єктів в та з послідовності байтів використовується вбудований шаблон \href{https://en.cppreference.com/w/cpp/language/reinterpret_cast}{\m{reinterpret\_cast}}. Наприклад, запис:
+    \begin{lstlisting}[language=c++]
+#include <fstream>
+#include <vector>        
+int main () {
+    std::string file_name{"image.dat"};
+    std::ofstream file(file_name, std::ios_base::out | std::ios_base::binary);
+    int rows = 2, cols = 3;
+    std::vector<float> vec(rows * cols);
+    file.write(reinterpret_cast <char*>(&rows), sizeof(rows));
+    file.write(reinterpret_cast <char*>(&cols), sizeof(cols));
+    file.write(reinterpret_cast <char*>(&vec.front()), vec.size() * sizeof(float));
+    return 0;
+    }
+    \end{lstlisting}
+    і зчитування
+    \begin{lstlisting}[language=c++]      
+#include <fstream>
+#include <iostream>
+#include <vector>
+int main() {
+    std::string file_name{"image.dat"};
+    int r = 0, c = 0;
+    std::ifstream in(file_name, std::ios_base::in | std::ios_base::binary);
+    if (!in) { return EXIT_FAILURE; }
+    in.read(reinterpret_cast <char*>(&r), sizeof(r));
+    in.read(reinterpret_cast <char*>(&c), sizeof(c));
+    std::cout << "Dim: " << r << " x " << c << std::endl;
+    std::vector <float> data(r * c, 0);
+    in.read(reinterpret_cast <char*>(&data.front()), data.size() * sizeof(data.front()));
+    for(auto d : data) { cout << d << endl; }
+    return 0;
+}  
+    \end{lstlisting}
+
+    \section{Бібліотека \m{std::filesystem}}
+    В C++ існує бібліотека, яка надає широкий спектр інструментів для роботи з файловою системою, яка називається \href{https://en.cppreference.com/w/cpp/filesystem}{\m{std::filesystem}} та підключається додаванням заголовку \m{filesystem}. Ось декілька корисних класів та функцій, на які варто звернути увагу
+    \begin{itemize}
+        \item \href{https://en.cppreference.com/w/cpp/filesystem/path}{path}
+        \item \href{https://en.cppreference.com/w/cpp/filesystem/directory_iterator}{directory\_iterator}
+        \item \href{https://en.cppreference.com/w/cpp/filesystem/absolute}{absolute}
+        \item \href{https://en.cppreference.com/w/cpp/filesystem/copy}{copy}
+        \item \href{https://en.cppreference.com/w/cpp/filesystem/copy_file}{copy\_file}
+        \item \href{https://en.cppreference.com/w/cpp/filesystem/current_path}{current\_path}
+        \item \href{https://en.cppreference.com/w/cpp/filesystem/exists}{exists}
+        \item \href{https://en.cppreference.com/w/cpp/filesystem/remove}{remove}
+    \end{itemize}
+    та багато інших в залежності від дій, які вам треба зробити.
+
+	\sec{Література}
+	
+	\begin{itemize}
+		\item Stroustrup, Bjarne. The C++ programming language. Pearson Education, 2013 (Глава 38).
+		\item \href{https://en.cppreference.com/w/cpp/io/basic_fstream}{CPPReference, basic\_fstream}.
+		\item \href{https://en.cppreference.com/w/cpp/filesystem}{CPPReference, filesystem}.
+	\end{itemize}
+
+\end{document}
